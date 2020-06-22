@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:movielist/model/Genre.dart';
-import 'package:movielist/repository/AppRepo.dart';
 import 'package:movielist/ui/home/MovieListModel.dart';
 import 'package:movielist/ui/home/widgets/GenreList.dart';
 import 'package:movielist/ui/home/widgets/MovieList.dart';
@@ -13,9 +12,6 @@ class MovieListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locale = Localizations.localeOf(context);
-    AppRepo.instance(region: locale.countryCode);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),
@@ -34,13 +30,13 @@ class MovieListPage extends StatelessWidget {
         color: Colors.blue,
         child: Container(
           height: 90.0,
-          child: _buildPages(),
+          child: _buildPages(context),
         ),
       ),
     );
   }
 
-  ///
+  /// Build body widget.
   ///
   ///
   Widget _buildBody(BuildContext context) => FutureBuilder(
@@ -56,10 +52,10 @@ class MovieListPage extends StatelessWidget {
     },
   );
 
+  /// Build pages widget.
   ///
   ///
-  ///
-  Widget _buildPages() => Consumer<MovieListModel>(
+  Widget _buildPages(BuildContext context) => Consumer<MovieListModel>(
     builder: (context, movieListModel, child) {
       if (movieListModel.totalPages == 0) {
         return Container();
@@ -67,32 +63,33 @@ class MovieListPage extends StatelessWidget {
 
       return Column(
         children: <Widget>[
-          _buildPageArrowButtons(movieListModel),
+          child,
           _buildPageNumbers(movieListModel),
         ],
       );
     },
+    child: _buildPageArrowButtons(context),
   );
 
+  /// Build page navigation (arrows left and right) widget.
   ///
   ///
-  ///
-  Widget _buildPageArrowButtons(MovieListModel movieListModel) => Row(
+  Widget _buildPageArrowButtons(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.center,
     children: <Widget>[
       IconButton(
         icon: Icon(Icons.navigate_before),
-        onPressed: () => movieListModel.previousPage(),
+        onPressed: () => Provider.of<MovieListModel>(context, listen: false).previousPage(),
       ),
       Text('Page'),
       IconButton(
         icon: Icon(Icons.navigate_next),
-        onPressed: () => movieListModel.nextPage(),
+        onPressed: () => Provider.of<MovieListModel>(context, listen: false).nextPage(),
       ),
     ],
   );
 
-  ///
+  /// Build page navigation (page number) widget.
   ///
   ///
   Widget _buildPageNumbers(MovieListModel movieListModel) => Expanded(

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity/connectivity.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:movielist/model/Genre.dart';
 import 'package:movielist/model/MovieList.dart';
@@ -16,18 +17,12 @@ class AppRepo {
 
   static AppRepo _instance;
 
-  String _region;
-
   /// Get singleton instance of this class.
   ///
   ///
-  static AppRepo instance({ String region }) {
+  static AppRepo instance() {
     if (_instance == null) {
       _instance = AppRepo._();
-    }
-
-    if (region != null) {
-      _instance._region = region;
     }
 
     return _instance;
@@ -48,12 +43,7 @@ class AppRepo {
       return [];
     }
 
-    final body = jsonDecode(res.body) as Map<String, dynamic>;
-    final rawGenres = body['genres'] as List;
-
-    return rawGenres.map(
-      (obj) => Genre.from(obj)
-    ).toList();
+    return compute(_parseGenres, res.body);
   }
 
   /// Discover movies from TMDB.
@@ -70,8 +60,7 @@ class AppRepo {
       return null;
     }
 
-    final rawMovieList = jsonDecode(res.body) as Map<String, dynamic>;    
-    return MovieList.from(rawMovieList, TMDB_BASE_IMAGE_URL);
+    return compute(_parseMovies, res.body);
   }
 
   /// Add [page] and [genres] query to [GET_TMDB_MOVIES] URL.
@@ -113,4 +102,24 @@ class AppRepo {
     final connectivityResult = await (Connectivity().checkConnectivity());
     return connectivityResult != ConnectivityResult.none;
   }
+}
+
+///
+///
+///
+List<Genre> _parseGenres(String responseBody) {
+  final body = jsonDecode(responseBody) as Map<String, dynamic>;
+  final rawGenres = body['genres'] as List;
+
+  return rawGenres.map(
+    (obj) => Genre.from(obj)
+  ).toList();
+}
+
+///
+///
+///
+MovieList _parseMovies(String responseBody) {
+  final rawMovieList = jsonDecode(responseBody) as Map<String, dynamic>;    
+  return MovieList.from(rawMovieList, AppRepo.TMDB_BASE_IMAGE_URL);
 }
